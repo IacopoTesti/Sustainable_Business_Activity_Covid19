@@ -4,7 +4,7 @@
 
 ![](esa_logo.jpg)
 
-Disclaimer : data are publicly available and provided by the European Space Agency via the RACE dashboard at the following link https://race.esa.int/?poi=IT13-E13d&country=IT&indicator=E13d
+Disclaimer : data are publicly available and provided by the European Space Agency via the RACE dashboard at the following link https://race.esa.int/?poi=IT3-E13e&country=IT&indicator=E13e
 
 The current pandemic is applying a strong pressure on global production capacities and global supply chains. In fact, it has been reported that the sanitary crisis has created a supply shock across the markets, causing severe supply chain disruption. In particular, the global maritime industry has been impacted directly by the preventive and containment measures imposed by government that have blocked many port activities and workers, and indirectly by the decreased demand for commodities and raw materials. The economy lockdown and the slowdowns, due to increased border control and sanitary measures across regions, have made road transportation and distribution services more difficult and have induced a labor’s and workers’ shortage.
 
