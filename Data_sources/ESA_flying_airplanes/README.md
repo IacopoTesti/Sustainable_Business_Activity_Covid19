@@ -1,4 +1,4 @@
-### European Space Agency RACE (Rapid Action on coronavirus and Eearth Observation)
+### European Space Agency RACE (Rapid Action on coronavirus and Earth Observation)
 
 #### Changes in Airports traffic (flying planes) 
 
