@@ -2,7 +2,7 @@
 
 #### Changes in Airports traffic (flying planes) 
 
-![](esa_logo.JPG)
+![](esa_logo.jpg)
 
 Disclaimer : data are publicly available and provided by the European Space Agency via the RACE dashboard at the following link https://race.esa.int/?poi=IT13-E13d&country=IT&indicator=E13d
 
