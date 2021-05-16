@@ -1,4 +1,4 @@
-### Sustainable Business Activity during Covid19
+### Sustainable Business Activity during Covid-19
 
 #### Introduction
 
