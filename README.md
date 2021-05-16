@@ -10,9 +10,9 @@ The Sustainable Business Activity Index is a multidimensional indicator that mea
 - Copernicus data (description here https://github.com/IacopoTesti/Sustainable_Business_Activity_Covid19/tree/main/Data_sources/Copernicus_AirQuality_data)
 - National Statistics Institute data (description here https://github.com/IacopoTesti/Sustainable_Business_Activity_Covid19/tree/main/Data_sources/Italy_regions)
 
+#### Visualize the index
 
-
-Find the Sustainable Business Activity visualization here https://iacopotesti.github.io/Sustainable_Business_Activity_Covid19/
+Find the Sustainable Business Activity visualization at the following link https://iacopotesti.github.io/Sustainable_Business_Activity_Covid19/
 
 ![](images/dashboard_SBA_index.PNG)
 
