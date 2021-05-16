@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!--this line defines the encoding type of the web document-->
+        <meta charset='utf-8' />
+        <!--this defines the title of the web page-->
+        <title>Sustainable Business Activity Index | Italy</title>
+        <!--this line controls how our map is displayed in a mobile browser-->
+        <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+        <!--this two lines import our map from mapbox (first one javascript code and second css stylesheet-->
+        <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.js'></script>
+        <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css' rel='stylesheet' />
+
+
+
+        <style>
+
+
+            /*---------------Here starts the CSS of the bottom part-----------------*/
+            body {
+                display: flex;
+                justify-content: center;
+                padding: 5em 1em;
+                font-family: sans-serif;
+            }
+
+            #top,
+            #bottom {
+                position: fixed;
+                left: 0;
+                right: 0;
+                height: 50%;
+            }
+
+            #top {
+                top: 0;
+                height: 67%;
+                background-color: transparent;
+            }
+
+            #bottom {
+                bottom: 0;
+                /*left:-30%;*/
+                height:33%;
+                background-color: rgb(34,34,34);
+            }
+
+            /* define transparency of the rectangle element */
+            .listening-rect {
+                fill: transparent;
+            }
+
+            /* define tooltip style */
+            .tooltip {
+                opacity: 0;
+                position: absolute;
+                top: -14px;
+                left: 0;
+                padding: 0.6em 1em;
+                background: rgb(26,26,26, 0.883);
+                color:rgb(255, 255, 255);
+                text-align: justify;
+                line-height: 1.4em;
+                font-size: 0.9em;
+                border: 1px solid rgb(26,26,26);
+                z-index: 10;
+                transition: all 0.1s ease-out;
+                pointer-events: none;
+                border-radius: 10px;
+            }
+
+            /* change style tooltip circle */
+            .tooltip-circle {
+                stroke: #af9358;
+                fill: white;
+                stroke-width: 2;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            /* change tooltip pop-up */
+            .tooltip:before {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                width: 12px;
+                height: 12px;
+                background: rgba(26, 26, 26, 0.883);
+                border: 1px solid rgba(26, 26, 26, 0.883);
+                border-top-color: transparent;
+                border-left-color: transparent;
+                transform: translate(-50%, 50%) rotate(45deg);
+                transform-origin: center center;
+                z-index: 10;
+                
+            }
+
+            /* change style of date */
+            .tooltip-date {
+                margin-bottom: 0.2em;
+                font-weight: 600;
+                font-size: 1.1em;
+                line-height: 1.4em;
+            }
+
+            /* change color of x and y axis */
+            .axisRed line{
+                stroke: rgb(255, 255, 255);
+            }
+            .axisRed path{
+                stroke: rgb(255, 255, 255);
+            }
+            .axisRed text{
+                fill: rgb(255, 255, 255);
+            }  
+
+            /* Style the dots of the line by assigning a fill and stroke */
+            .dot {
+                fill: #ffffff;
+                stroke: rgb(255,16,83);
+            }
+            /*---------------Here ends the CSS of the bottom part-----------------*/
+
+            /*---------------Here starts the CSS of the upper part-----------------*/
+            /*this defines the style of the body (ex. font style, font size, etc*/
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: sans-serif;
+                font-size: 14px;
+            }
+            
+            /*this defines the style of the map*/
+            #map {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                width: 100%;
+            }
+
+            /*this defines the style spacing of the text legend panel*/
+            li {
+                padding: 3px
+            }
+
+            /*this defines the style for the legend panel features that will be called underneath in the body*/
+            #panel {
+                background: rgb(34,34,34);
+                width: 310px;
+                border: 1px solid rgb(34,34,34);
+                position: absolute;
+                right: 0px;
+                top: 0px;
+                box-shadow: 0 0 4px 0 rgb(34,34,34); 
+                color: rgba(255,255,255,0.9); /*this changes the text color*/
+                justify-content: center;
+                height:630px;
+            }
+
+            /*#legend {
+                background: rgba(0,0,0,0.5);
+                width: 310px;
+                height: 260px;
+                border: 1px solid rgba(0,0,0,0.05);
+                position: absolute;
+                right: 0px;
+                top: 200px;
+                box-shadow: 0 0 4px 0 rgba(0,0,0,0.1); 
+                color: rgba(255,255,255,0.9); /*this changes the text color
+            }*/
+            
+            /*this defines the style of the legend title*/
+            h4 {
+                /*text-transform: lowercase;*/
+                border-bottom: 1px solid rgba(255,255,255,0.07); /*this changes the line color*/
+                margin:0;
+                padding: 16px;
+            }
+
+            /*this defines the spacing style for each legend text bullets*/
+            ul {
+                list-style-type: none; /*this line turns off the existing bullets*/
+                margin: 0;
+                padding: 16px;
+            }
+
+            /*this defines the style and shape of the legend text bullets*/
+            ul span {
+                width: 10px; /*width of bullet*/
+                height: 10px; /*height of bullet*/
+                display: inline-block; /*this is the bullet as a little square*/
+                margin-right: 8px; /*this sets the space beetween text and bullet*/
+                border-radius: 50%; /*this makes the bullet as a circle*/
+            }
+            
+            /*I can find dd using the developer tools -> elements -> body -> div class -> div class -> dl -> dd */
+            /*this block defines the visual style of the pop up window that appears when I click on one of the restaurants */
+            dd {
+                margin-left : 0; /*this defines the left justification*/
+                
+                margin-bottom : 8px; /*this defines the space from the bottom*/ 
+                font-weight : bold; /*this defines the text weight*/ 
+                color:white;
+            }
+
+            
+
+
+            /*This block defines the text style and size of popup windows that appears when I click on a region*/
+            .mapboxgl-popup-content{
+               
+                font-size: 14px;
+                
+                box-shadow: 0 0 4px 0; 
+                min-width: 270px;
+                max-height: 270px;
+                min-height: 270px;
+                box-shadow: 0 0 4px 0 rgba(0,0,0,0.1); 
+                color: rgb(134, 134, 134);
+                background: rgba(26, 26, 26, 0.822);
+                border-radius: 10px;
+            }
+
+            /*This block defines tip color (small triangle when clicking)*/
+            .mapboxgl-popup-anchor-top .mapboxgl-popup-tip,
+            .mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip,
+            .mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip {
+                border-bottom-color: rgba(26, 26, 26, 0.822);
+                }
+            .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip,
+            .mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip,
+            .mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip {
+                border-top-color: rgba(26, 26, 26, 0.822);
+                }
+            .mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+                border-right-color: rgba(26, 26, 26, 0.822);
+                }
+            .mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+                border-left-color: rgba(26, 26, 26, 0.822);
+                }
+
+            
+
+            /*opacity: 0;
+                position: absolute;
+                top: -14px;
+                left: 0;
+                padding: 0.6em 1em;
+                background: rgb(26,26,26, 0.883);
+                color:rgb(255, 255, 255);
+                text-align: justify;
+                line-height: 1.4em;
+                font-size: 0.9em;
+                border: 1px solid rgb(26,26,26);
+                z-index: 10;
+                transition: all 0.1s ease-out;
+                pointer-events: none;
+                border-radius: 10px;*/
+
+            
+
+            #popup {
+                width: 270px;
+                height: 250px;
+            }
+
+            .popup-name {
+                margin-bottom: 8px;
+                width: 180px;
+            }
+
+            .popup-inner {
+                position: relative;
+                top: -130px;
+                right: -170px;
+                width: 150px;
+                
+            }
+
+            .popup-list {
+                position: relative;
+                height: 80px;
+                width: 50px;
+                
+                top: 32px;
+                left: 20px;
+                list-style-type: none;
+                background: rgba(0, 0, 0, 0);
+                transform: rotate(90deg);       
+            }
+
+            .popup-graph-title {
+                position: absolute;
+                color: #747474;
+            }
+
+            .popup-listItem1 {
+                position: absolute;
+                bottom: 15px;
+                left: -62px;          
+                height: 80px;
+                width: 10px;           
+                background: rgba(0, 0, 0, 0);
+            }
+
+            .popup-listItem10 {
+                position: absolute;
+                bottom: 15px;
+                left: -62px;          
+                height: 80px;
+                width: 10px;           
+                background: rgba(0, 0, 0, 0);
+            }
+
+            .popup-listItem2 {
+                position: absolute;
+                bottom: 15px;
+                left: -42px;            
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);            
+            }
+
+            .popup-listItem20 {
+                position: absolute;
+                bottom: 15px;
+                left: -42px;            
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);            
+            }
+            
+            .popup-listItem3 {
+                position: absolute;
+                bottom: 15px;
+                left: -22px;         
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);          
+            }
+
+            .popup-listItem30 {
+                position: absolute;
+                bottom: 15px;
+                left: -22px;         
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);          
+            }
+
+            .popup-listItem4 {
+                position: absolute;
+                bottom: 15px;
+                left: -2px;         
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);          
+            }
+
+            .popup-listItem40 {
+                position: absolute;
+                bottom: 15px;
+                left: -2px;         
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);          
+            }
+
+            .popup-listItem5 {
+                position: absolute;
+                bottom: 15px;
+                left: 18px;         
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);          
+            }
+
+            .popup-listItem50 {
+                position: absolute;
+                bottom: 15px;
+                left: 18px;         
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);          
+            }
+
+            .popup-listItem6 {
+                position: absolute;
+                bottom: 15px;
+                left: 38px;         
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);          
+            }
+
+            .popup-listItem60 {
+                position: absolute;
+                bottom: 15px;
+                left: 38px;         
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);          
+            }
+
+            .popup-listItem7 {
+                position: absolute;
+                bottom: 15px;
+                left: 58px;         
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);          
+            }
+
+            .popup-listItem70 {
+                position: absolute;
+                bottom: 15px;
+                left: 58px;         
+                height: 80px;
+                width: 10px;
+                background: rgba(0, 0, 0, 0);          
+            }
+
+            .popup-listBar {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                transform: rotate(90deg); 
+            }
+
+            .popup-listBar10 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                transform: rotate(90deg); 
+            }
+
+            .popup-listBar2 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                transform: rotate(90deg); 
+            }
+
+            .popup-listBar20 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                transform: rotate(90deg); 
+            }
+
+            .popup-listBar3 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                transform: rotate(90deg);       
+            }
+
+            .popup-listBar30 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                transform: rotate(90deg);       
+            }
+
+            .popup-listBar4 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                transform: rotate(90deg);       
+            }
+
+            .popup-listBar40 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                transform: rotate(90deg);       
+            }
+
+            .popup-listBar5 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                transform: rotate(90deg);       
+            }
+
+            .popup-listBar50 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                transform: rotate(90deg);       
+            }
+
+            .popup-listBar6 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                transform: rotate(90deg);       
+            }
+
+            .popup-listBar60 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                transform: rotate(90deg);       
+            }
+
+            .popup-listBar7 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                transform: rotate(90deg);       
+            }
+
+            .popup-listBar70 {
+                height: 80px;
+                width: 8px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                transform: rotate(90deg);       
+            }
+
+            .popup-listBar span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                
+                /*this defines the height of the bars*/
+                height:100%;
+                width: 100%;
+                background: #ff1053;
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;        
+            }
+
+            .popup-listBar10 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                /*this defines the height of the bars*/
+                height:100px;
+                width: 100%;
+                background: rgb(44, 44, 44);
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;        
+            }
+
+            .popup-listBar2 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                height:100%;
+                width: 100%;
+                background: #ff1053;
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            .popup-listBar20 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                height:100%;
+                width: 100%;
+                background: rgb(44, 44, 44);
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            .popup-listBar3 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                height:100%;
+                width: 100%;
+                background: #ff1053;
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            .popup-listBar30 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                height:100%;
+                width: 100%;
+                background: rgb(44, 44, 44);
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            .popup-listBar4 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                width: 100%;
+                background: #ff1053;
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            .popup-listBar40 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                width: 100%;
+                background: rgb(44, 44, 44);
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            .popup-listBar5 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                width: 100%;
+                background: #ff1053;
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            .popup-listBar50 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                width: 100%;
+                background: rgb(44, 44, 44);
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            .popup-listBar6 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                width: 100%;
+                background: #ff1053;
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            .popup-listBar60 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                width: 100%;
+                background: rgb(44, 44, 44);
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            .popup-listBar7 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                width: 100%;
+                background: #ff1053;
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            .popup-listBar70 span {
+                position: fixed;
+                bottom: 41px;
+                left: 60px;
+                width: 100%;
+                background: rgb(44, 44, 44);
+                border-radius: 25px;
+                transform: rotate(270deg);
+                transform-origin: bottom center;
+            }
+
+            /*This block defines the bottom margin of the text inside the popup window*/
+            dl{
+                margin-bottom: 0;
+            }
+
+
+            select option {
+                position: absolute;
+                background: rgb(0, 0, 0);
+                width:315px;
+                color: rgb(255, 255, 255);
+                text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+                font-family: sans-serif;
+                font-size: 14px;
+                margin: #000000;
+            }
+
+            
+
+            select {
+                position: absolute;
+                right: 0px;
+                top:10px;
+                bottom:550px;
+                width:315px;
+                height:30px;
+                border: #000000;
+                background: rgba(26, 26, 26, 0.822);
+                color: rgb(255, 255, 255);
+                text-shadow: 0 1px 0 rgba(26, 26, 26, 0.822);
+                font-family: sans-serif;
+                font-size: 14px;
+               
+                
+            }
+
+            
+            .box1_restrictions {
+                
+                position:absolute;
+                top:5px;
+                left:200px;
+                
+                width: 340px;
+                height: 250px;
+                
+                background-color: rgba(206, 209, 6, 0.068);
+                z-index: -1;
+                
+                font-family: sans-serif;
+                text-align: center;
+                font-size: 3;
+                
+                color: white;
+                
+                
+            }
+
+            /*this makes the first yellow box adaptable*/
+            @media screen and (max-height:3000px) {
+            .box1_restrictions{
+                
+                left:12.7%;
+                width:19%;
+            }
+            }
+
+
+            .box2_restrictions {
+                
+                position:absolute;
+                top:5px;
+                left:1519px;
+                
+                width: 350px;
+                height: 250px;
+                
+                background-color: rgba(206, 209, 6, 0.068);
+                z-index: -1;
+                
+                font-family: sans-serif;
+                text-align: center;
+                font-size: 3;
+                
+                color: white;
+                
+                
+            }
+
+            /*this makes the second yellow box adaptable*/
+            @media screen and (max-height:3000px) {
+            .box2_restrictions{
+                
+                left:78.9%;
+                width:18.3%;
+            }
+            }
+
+            
+
+
+
+
+
+
+
+
+
+        </style>
+
+
+    </head>
+    <body>
+        <div id="top">top
+            <div id='map'></div>
+            <div id='panel'>
+                <!--legend title-->
+                <h4>Sustainable Business Activity Level</h4>
+                <ul>
+                    <!--elements of the legend-->
+                    <!--the span elements create the bullets in front of the text (the bullets features are defined above in the css rules in span-->
+                    <li><strong>130-118</strong> Very High</li> 
+                    <li><strong>117-106</strong> Moderately High</li> 
+                    <li><strong>105-94</strong> Medium</li> 
+                    <li><strong>93-82</strong> Moderately Low</li> 
+                    <li><strong>81-70</strong> Very Low</li> 
+                </ul>
+                <ul>
+                    The <strong>Sustainable Business Activity Index</strong> is a multidimensional indicator that measures and aggregates both business activity and air quality levels during the current global pandemic (year 2020), using as baseline 2019 (before Covid-19). 
+                    The proposal aims at providing an indicator for national policy making considering mobility related to business activities in balance with environmental impact. 
+                    The Italian regions objective of the study (Liguria, Lombardia, Emilia-Romagna) are used as a proxy to indicate national areas with highest GDP as they are three of the most prolific territories.
+                    Datasets used are publicly available and provided by the European Space Agency via its <strong><a href="https://race.esa.int/?country=IT">RACE </a></strong> (Rapid Action on Corona Virus) dashboard. 
+                    All data sources (Google, ESA, Copernicus) and mathematical processing are public available at Iacopo Testi's <strong><a href="https://github.com/IacopoTesti/Sustainable_Business_Activity_Covid19">Github Repository </a></strong>.
+                </ul>
+
+                <div id='legend'>
+                    <!--legend title-->
+                    <!--<h4>Units Legend</h4>
+                    <ul>
+                        elements of the legend
+                        the span elements create the bullets in front of the text (the bullets features are defined above in the css rules in span
+                        <li>Carbon Monoxide | mg/m<sup>3</li> 
+                        <li>Noise Pollution | decibel</li> 
+                        <li>Particulate Matter | µg/m<sup>3<li> 
+                        <li>Rainfall | l/m<sup>2</li> 
+                        <li>Solar Radiation | W/m<sup>2</li>
+                        <li>Temperature | ºC</li>
+                        <li>Trees Density | trees/km<sup>2</li>
+                        
+                    </ul>-->
+            </div>
+
+            <!--<div class="dropdown">
+                <button onclick="myFunction()" class="dropbtn">Dropdown</button>
+                <div id="myDropdown" class="dropdown-content">
+                <a href="#feb" onclick= "js()" >February 2020</a>
+                <a href="#march">March 2020</a>
+                <a href="#april">April 2020</a>
+                <a href="#may">May 2020</a>
+                <a href="#june">June 2020</a>
+                <a href="#july">July 2020</a>
+                <a href="#august">August 2020</a>
+                <a href="#sept">September 2020</a>
+                <a href="#oct">October 2020</a>
+                <a href="#nov">November 2020</a>
+                <a href="#dec">December 2020</a>
+                </div>
+            </div>-->
+
+            
+            </div>
+        </div>
+
+
+
+        <!--These are all the containers present in the bottom part of the screen-->        
+        <div id="bottom">
+            
+            <div id="wrapper">
+                <div id="tooltip" class="tooltip">
+                    <div class="tooltip-date">
+                        <span id="date"></span>
+                    </div>
+                    <div class="tooltip-ampi_index">
+                        <strong>Sustainable Business Activity Index : </strong><span id="ampi_index" ></span>
+                    </div>
+                    <div class="tooltip-retail">
+                        <strong>Mobility to retail activities : </strong><span id="retail"></span>
+                    </div>
+                    <div class="tooltip-stations">
+                        <strong>Mobility to main stations : </strong><span id="stations"></span>
+                    </div>
+                    <div class="tooltip-work">
+                        <strong>Mobility to workplaces : </strong><span id="work"></span>
+                    </div>
+                    <div class="tooltip-airplanes">
+                        <strong>Number flying airplanes : </strong><span id="airplanes"></span>
+                    </div>
+                    <div class="tooltip-ships">
+                        <strong>Number ships : </strong><span id="ships"></span>
+                    </div>
+                    <div class="tooltip-pm10">
+                        <strong>Particulate matter 10 : </strong><span id="pm10"></span>
+                    </div>
+                    <div class="tooltip-no2">
+                        <strong>Nitrogen dioxide : </strong><span id="no2"></span>
+                    </div>
+                    
+                </div> 
+            </div>
+
+            <div class="box1_restrictions"> <strong> Covid-19 high restrictions (7th March - 3rd May) </strong>
+            </div>
+            <div class="box2_restrictions"> 
+            </div>
+
+            <div class="dropdown"  style="width:200px;">
+                
+                
+                    
+                <select class= "options" id = "myList" onchange = "favTutorial()" >
+                    <option> Select month Sustainable Business Activity Level </option>
+                    <option value=5> February 2020 </option>
+                    <option value=6> March 2020 </option>
+                    <option value=0> April 2020 </option>
+                    <option value=9> May 2020 </option>
+                    <option value=10> June 2020 </option>
+                    <option value=8> July 2020 </option>
+                    <option value=3> August 2020 </option>
+                    <option value=2> September 2020 </option>
+                    <option value=4> October 2020 </option>
+                    <option value=7> Novemeber 2020 </option>
+                    <option value=1> December 2020 </option>
+                </select>
+                
+            </div>
+            
+        </div>
+
+
+
+
+        <!--------------------HERE STARTS THE SCRIPT FOR THE BOTTOM GRAPH-------------------->
+
+        <script src="d3.v6.js"></script>
+        
+
+        <script>
+
+            async function drawLineChart() {
+
+            // define the url from which I need to load the data 
+            const url = "https://raw.githubusercontent.com/IacopoTesti/Sustainable_Business_Activity_Covid19/main/Data_output/final_dataset.csv"
+            // load data from url
+            // d3.autotype detects automatically the columns data types
+            const dataset = await d3.csv(url, d3.autoType)
+            console.log(dataset)
+
+
+            // creates all accessors to select columns
+            // this stores the ampi_index column
+            const yAccessor = d => d["ampi_index"]
+            // this prints the first value of the ampi_index column
+            console.log(yAccessor(dataset[0]))
+
+            // this defines a constant to parse the date into a datetime format (in this case not needed due to the autoType above)
+            // const parseDate = d3.timeParse("%Y-%m")
+            // this stores and parses the ampi_index column
+            const xAccessor = d => d["time"]
+            // this prints the x constant on the console
+            console.log(xAccessor(dataset[0]))
+
+            // percentage retail column
+            const xRetail = d => d["retail_units"]   
+            // percentage stations column
+            const xStations = d => d["stations_units"] 
+            // percentage workplaces column
+            const xWork = d => d["workplaces_units"] 
+            // percentage airplanes column
+            const xAirplanes = d => d["airplanes_units"] 
+            // percentage ships column
+            const xShips = d => d["ships_units"]  
+            // percentage ships column
+            const xPm10 = d => d["pm10_units"] 
+            // percentage ships column
+            const xNo2 = d => d["no2_units"] 
+
+
+
+
+    
+            // this defines the dimensions of the wrapper (external container) and bounds (internal container)
+            let dimensions = {
+
+                // define wrapper width as 90% of the entire window
+                width: window.innerWidth * 0.98,
+                // define wrapper height
+                height: 300,
+                // define the white margins between wrapper and bounds
+                margins: {
+                top: 15,
+                right: 15,
+                bottom: 40,
+                left: 60,
+                }
+            }
+
+        
+       
+            // 1. Add the SVG to the page and employ #2
+            // const svg = d3.select("#wrapper")
+                        // .append("svg")
+                        //.attr("width", dimensions.width + dimensions.margins.left + dimensions.margins.right)
+                        //.attr("height", dimensions.height + dimensions.margins.top + dimensions.margins.bottom)
+                        //.append("g")
+                        //.attr("transform", "translate(" + dimensions.margins.left + "," + dimensions.margins.top + ")");
+
+
+
+            // define the dimensions of the bounds (wrapper dimension - margins)
+            dimensions.boundedWidth = dimensions.width
+            - dimensions.margins.left
+            - dimensions.margins.right
+            dimensions.boundedHeight = dimensions.height
+            - dimensions.margins.top
+            - dimensions.margins.bottom
+            console.log(dimensions)
+
+            // this creates a constant for the wrapper present in the html
+            const wrapper = d3.select("#wrapper")
+            // create constant to append an svg element
+                .append("svg")
+                // this updates the width of the wrapper element
+                .attr("width", dimensions.width)
+                // this updates the height of the wrapper element
+                .attr("height", dimensions.height)
+
+
+            
+                
+                
+
+
+
+
+
+
+                            
+                console.log(wrapper)
+
+            const add_circle = wrapper.append("g")
+                .style("transform", `translate(${dimensions.margins.left}px, ${dimensions.margins.top}px)`)
+
+            // create bounds (inner margins of the chart)
+            // append group element to the wrapper
+            const bounds = wrapper.append("g")
+                // use style to move the the top-left vertex of the bound
+                // define left and top shift
+                .style("transform", `translate(${
+                    dimensions.margins.left
+                }px, ${
+                    dimensions.margins.top
+                }px)`)
+
+
+
+           
+
+
+
+
+
+
+
+            // 4. Create scales
+
+            // this linearly scales the Y axis from one dimension to the other
+            const yScale = d3.scaleLinear()
+                // the domain maps from the minimum to the maximum value of data
+                // the extent function extracts the minimum and maximum 
+                .domain(d3.extent(dataset, yAccessor))
+                // the range contains the pixels from the top to zero
+                .range([dimensions.boundedHeight, 0])
+                console.log(d3.extent(dataset, yAccessor))
+
+            
+
+            // this scales the X time axis from one dimension to the other
+            const xScale = d3.scaleTime()
+                .domain(d3.extent(dataset, xAccessor))
+                .range([0, dimensions.boundedWidth])
+
+
+
+
+
+
+
+
+
+
+
+            // 5. Draw data
+
+            // this creates the line for each x and y in the dataset
+            const lineGenerator = d3.line()
+                
+                // this returns all the x values (time)
+                .x(d => xScale(xAccessor(d)))
+                // this returns all the y values (ampi index)
+                .y(d => yScale(yAccessor(d)))
+                .curve(d3.curveMonotoneX)
+
+            // this appends the line generated with the generator above
+            const line = bounds.append("path")
+                .attr("d", lineGenerator(dataset))
+                .attr("fill", "none")
+                .attr("stroke", "#ff1053")
+                .attr("stroke-width", 3)
+
+
+            // 6. Draw peripherals
+
+            const yAxisGenerator = d3.axisLeft()
+                .scale(yScale)
+
+            const yAxis = bounds.append("g")
+                
+                .call(yAxisGenerator)
+                // change the axis color
+                .attr("class", "axisRed")
+
+            const xAxisGenerator = d3.axisBottom()
+                .scale(xScale)
+
+            const xAxis = bounds.append("g")
+                .call(xAxisGenerator)
+                // change the axis color
+                .attr("class", "axisRed")
+                .style("transform", `translateY(${
+                    dimensions.boundedHeight
+                }px)`)
+
+            
+
+            
+
+
+            // set up interactions
+            const listeningRect = bounds.append("rect")
+                .attr("class", "listening-rect")
+                .attr("width", dimensions.boundedWidth)
+                .attr("height", dimensions.boundedHeight)
+                .on("mousemove", onMouseMove)
+                .on("mouseleave", onMouseLeave)
+
+            
+
+            
+            const tooltip = d3.select("#tooltip")
+            const tooltipCircle = bounds.append("circle")
+                .attr("class", "tooltip-circle")
+                .attr("r", 4)
+
+            
+
+
+            function onMouseMove(event) {
+                const mousePosition = d3.pointer(event)
+                
+                // this assigns to the cursor the x value
+                const hoveredDate = xScale.invert(mousePosition[0])
+                const getDistanceFromHoveredDate = d => Math.abs(xAccessor(d) - hoveredDate)
+                const closestIndex = d3.leastIndex(dataset, (a, b) => (
+                getDistanceFromHoveredDate(a) - getDistanceFromHoveredDate(b)
+                ))
+                const closestDataPoint = dataset[closestIndex]
+                
+
+
+                // set constants to fill the tooltips
+                const closestXValue = xAccessor(closestDataPoint)
+                const closestYValue = yAccessor(closestDataPoint)
+                const closestXRetail = xRetail(closestDataPoint)
+                const closestXStations = xStations(closestDataPoint)
+                const closestXWork = xWork(closestDataPoint)
+                const closestXAirplanes = xAirplanes(closestDataPoint)
+                const closestXShips = xShips(closestDataPoint)
+                const closestXPm10 = xPm10(closestDataPoint)
+                const closestXNo2 = xNo2(closestDataPoint)
+
+
+
+                // these lines format the text to appear in the pop-up container
+                const formatDate = d3.timeFormat("%B %A %-d, %Y")
+                //const formatTemperature = d => `${d3.format(".1f")(d)}°F`
+
+
+                // all these lines select the tooltips divs
+                // date
+                tooltip.select("#date")
+                    .text(formatDate(closestXValue))
+                // ampi index
+                tooltip.select("#ampi_index")
+                    .html(closestYValue)
+                // mobility to retail 
+                tooltip.select("#retail")
+                    .html(closestXRetail + "%")
+                // mobility to stations
+                tooltip.select("#stations")
+                    .html(closestXStations + "%")
+                // mobility to work
+                tooltip.select("#work")
+                    .html(closestXWork + "%")
+                // mobility airplanes
+                tooltip.select("#airplanes")
+                    .html(closestXAirplanes + "%")
+                // mobility ships
+                tooltip.select("#ships")
+                    .html(closestXShips + "%")
+                // pm10
+                tooltip.select("#pm10")
+                    .html(closestXPm10 + "%")
+                // no2
+                tooltip.select("#no2")
+                    .html(closestXNo2 + "%")
+
+
+
+
+
+
+
+
+
+                // this takes into account the margins
+                const x = xScale(closestXValue)
+                    + dimensions.margins.left
+                const y = yScale(closestYValue)
+                    + dimensions.margins.top
+
+                // this transforms the tooltip position
+                tooltip.style("transform", `translate(`
+                    + `calc( -50% + ${x}px),`
+                    + `calc(-100% + ${y}px)`
+                    + `)`)
+
+                
+                // set the opacity of the tooltip
+                tooltip.style("opacity", 1)
+
+
+                tooltipCircle
+                        .attr("cx", xScale(closestXValue))
+                        .attr("cy", yScale(closestYValue))
+                        .style("opacity", 1)
+
+
+            }
+
+
+            
+
+
+            function onMouseLeave() {
+                tooltip.style("opacity", 0)
+
+                tooltipCircle.style("opacity", 0)
+            }
+
+            // 12. Appends a circle for each datapoint 
+            add_circle.selectAll(".dot")
+                .data(dataset)
+                .enter()
+                .append("circle") // Uses the enter().append() method
+                .attr("class", "dot") // Assign a class for styling
+                .attr("cx", function(d) { return xScale(d.time) })
+                .attr("cy", function(d) { return yScale(d.ampi_index) })
+                .attr("r", 5);
+
+
+            
+
+                
+
+        
+
+
+            }
+
+            
+        
+            drawLineChart()
+
+/*------------------------HERE STARTS THE SCRIPT FOR THE BOTTOM GRAPH-------------------------*/
+
+
+// This defines the variable to change later to query the features
+        function favTutorial() {
+                    var mylist = document.getElementById("myList");
+                    month_value = mylist.options[mylist.selectedIndex].value;
+                    month_text =  mylist.options[mylist.selectedIndex].text;
+                }
+
+     
+
+        // This Closes the dropdown if the user clicks outside of it
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropbtn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                var i;
+                for (i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+        mapboxgl.accessToken = 'pk.eyJ1IjoiaWFjb3BvLWRzIiwiYSI6ImNrMzJ1NHBtdzA1b3YzbW55ZTJhbzZtdmgifQ.RcWjOUEo4i7LnQDcbhcPWQ'; // key used to make the link public on github
+        var map = new mapboxgl.Map({
+            container: 'map', // container id
+            style: 'mapbox://styles/iacopo-ds/ckoeh9tz71rli17ol2cx6bwc4', // this is the map I created in mapbox
+            center: [12.630, 42.266, ], // starting position [lng, lat]
+            zoom: 4.5, // starting zoom
+            minZoom: 4.5,
+            maxZoom: 18
+        });
+        
+        /*This block defines the map navigator on the top left of the map*/
+        var nav = new mapboxgl.NavigationControl();
+        map.addControl(nav, 'top-left');
+        
+        /*This block makes the mouse change when it is above something that is possible to query*/
+        map.on('mousemove', function (event) {
+            if (map.loaded()) {
+                var features = map.queryRenderedFeatures(event.point, {
+                    layers: ['SBA_index'] /*this is the layer name in the mapbox map */
+                });
+                /*This line is an if statement, ? equals if and : equals else*/
+                map.getCanvas().style.cursor = features.length ? 'pointer' : '';
+            }
+        });
+        
+        /*this block defines the mouse click */
+        map.on('click', function (event) {
+            var geometry = event.point;
+            var parameters = {
+                layers : ['SBA_index'] /*this is the layer name in the mapbox map */
+            };
+            var features = map.queryRenderedFeatures(geometry, parameters);
+            var lot = features[month_value];
+            console.log(lot);
+
+            /*This if statement is useful to avoid errors in case of clicks where there are no data*/
+            if (features.length>0) {
+                /*these lines select the properties I want to show in the pop up window*/
+                
+                var SBA_index = lot.properties.ampi_index || '—';
+                var retail = lot.properties.perc_retail || '—';
+                var stations = lot.properties.perc_stations || '—';
+                var workplaces = lot.properties.perc_workplaces || '—';
+                var airplanes = lot.properties.perc_airplanes || '—';
+                var ships = lot.properties.perc_ships || '—';
+                var pm10 = lot.properties.perc_pm10 || '—';
+                var no2 = lot.properties.perc_NO2 || '—';
+                /*these lines select the numbers and units I want to show in the pop up window*/
+                var retail_units = lot.properties.retail_units || '—';
+                var retail_units_modified = retail_units + 100;
+
+                var stations_units = lot.properties.stations_units || '—';
+                var stations_units_modified = stations_units + 100;
+
+                var workplaces_units = lot.properties.workplaces_units || '—';
+                var workplaces_units_modified = workplaces_units + 100;
+
+                var airplanes_units = lot.properties.airplanes_units || '—';
+                var airplanes_units_modified = airplanes_units + 100;
+
+                var ships_units = lot.properties.ships_units || '—';
+                var ships_units_modified = ships_units + 100;
+
+                var pm10_units = lot.properties.pm10_units || '—';
+                var pm10_units_modified = pm10_units + 100;
+
+                var no2_units = lot.properties.no2_units || '—';
+                var no2_units_modified = no2_units + 100;
+                
+              
+ 
+                console.log(retail);
+
+                /*this creates the pop up (look at mapbox GL JS API for more information) */
+                var popup = new mapboxgl.Popup()
+                    .setLngLat(event.lngLat) /*this is the mouse location */
+                    .setHTML(
+                                               
+                            '<div id="popup"  style="display: block;">' +
+                                '<div class="popup-name">' +
+                                    '<span>' + 
+                                        '<dt>Regions :</dt>' +
+                                        '<dd> Liguria, Lombardia, Emilia-Romagna </dd>' +
+                                        '<dt>Sustainable Business Activity Index ' + month_text + ':</dt>' +
+                                        '<dd>' + SBA_index + '</dd>' +
+                                        '<dt>mobility retail : '+ retail_units + '%' + '</dt>' +
+                                        '<dt>mobility stastions : '+ stations_units + '%' +  '</dt>' +
+                                        '<dt>mobility work : '+ workplaces_units + '%' + '</dt>' +
+                                        '<dt>airplanes activity : '+ airplanes_units + '%' +  '</dt>' +
+                                        '<dt>ships activity : '+ ships_units + '%' +  '</dt>' +
+                                        '<dt>pm 10 :' + pm10_units + '%' +  '</dt>' +
+                                        '<dt>no2 : '+ no2_units + '%' +  '</dt>' +
+                                    '</span>' +                                
+                                '</div>' +
+
+                                '<div class="popup-inner">' +
+                                    '<ul class="popup-list">' +
+
+                                        '<li class="popup-listItem10">' +
+                                            '<div class="popup-listBar10">' +
+                                                '<span style="height:' + 100 + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem1">' +
+                                            '<div class="popup-listBar">' +
+                                                '<span style="height:' + retail_units_modified + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem20">' +
+                                            '<div class="popup-listBar20">' +
+                                                '<span style="height:' + 100 + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem2">' +
+                                            '<div class="popup-listBar2">' +
+                                                '<span style="height:' + stations_units_modified + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem30">' +
+                                            '<div class="popup-listBar30">' +
+                                                '<span style="height:' + 100 + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem3">' +
+                                            '<div class="popup-listBar3">' +
+                                                '<span style="height:' + workplaces_units_modified + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem40">' +
+                                            '<div class="popup-listBar40">' +
+                                                '<span style="height:' + 100 + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem4">' +
+                                            '<div class="popup-listBar3">' +
+                                                '<span style="height:' + airplanes_units_modified + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem50">' +
+                                            '<div class="popup-listBar50">' +
+                                                '<span style="height:' + 100 + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem5">' +
+                                            '<div class="popup-listBar3">' +
+                                                '<span style="height:' + ships_units_modified + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem60">' +
+                                            '<div class="popup-listBar60">' +
+                                                '<span style="height:' + 100 + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem6">' +
+                                            '<div class="popup-listBar3">' +
+                                                '<span style="height:' + pm10_units_modified + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem70">' +
+                                            '<div class="popup-listBar70">' +
+                                                '<span style="height:' + 100 + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+                                        '<li class="popup-listItem7">' +
+                                            '<div class="popup-listBar3">' +
+                                                '<span style="height:' + no2_units_modified + '%;">' + 
+                                                '</span>' +
+                                            '</div>' +
+                                        '</li>'+
+
+
+
+
+                                    '</ul>' +
+                                '</div>' +
+                            
+
+                            '</div>' 
+
+                            )
+
+                    .addTo(map); /*this line adds the pop up to the map */
+            }
+        });
+
+
+
+
+
+        </script>
+
+
+
+
+
+
+
+
+
+    </body>
+</html>
