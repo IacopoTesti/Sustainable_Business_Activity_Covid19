@@ -5,5 +5,5 @@
 
 Find the Sustainable Business Activity visualization here https://iacopotesti.github.io/Sustainable_Business_Activity_Covid19/
 
-![](Images/dashboard_SBA_index.PNG)
+![](images/dashboard_SBA_index.PNG)
 
